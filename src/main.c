@@ -1,6 +1,6 @@
 //--------------------------------------
 // Program Name: TAXI
-// Author: commandblockguy
+// Author: commandblockguy/LogicalJoe
 // License:
 // Description:
 //--------------------------------------
@@ -38,7 +38,8 @@ void renderTraffic(bool update);
 bool getTraffic();
 bool atTarget();
 void newTarget();
-
+void writeAppVar();
+void readAppVar();
 /* Put all your globals here. */
 #define INFOBAR_HEIGHT 16
 #define BORDER 4
@@ -76,7 +77,15 @@ typedef struct {
     uint8_t targetX;
     uint8_t targetY;
 } game_t;
+typedef struct appvar1{
+    uint16_t highscore;
+} appVar1_t;
+appVar1_t appVar;
+ti_var_t file;
+
+
 game_t game;
+
 
 gfx_UninitedSprite(behind_sprite, 8, 8);
 
@@ -84,7 +93,11 @@ void main(void) {
     /* Fill in the body of the main function here */
     uint8_t xPos;
     uint8_t yPos;
-
+    uint8_t i;
+    
+    ti_CloseAll();
+    readAppVar();
+    
     prgm_CleanUp();
     srand(rtc_Time());
     gfx_Begin(gfx_8bpp);
@@ -121,12 +134,33 @@ void main(void) {
         gfx_PrintString("Score: ");
         gfx_PrintUInt(game.score, 3);
         gfx_BlitBuffer();
-        delay(250);
+        if (game.score > appVar.highscore) {
+            appVar.highscore = game.score;
+            writeAppVar();
+        }
+        for (i=0;i<250;i++);
+        while (kb_AnyKey());
         waitForKey();
     }
-
     gfx_End();
     prgm_CleanUp();
+}
+
+void readAppVar(void) {
+    int stuff;
+    ti_CloseAll();
+    file = ti_Open("Taxi", "r");
+    stuff = ti_Read(&appVar, sizeof(appVar), 1, file);
+    ti_CloseAll();
+}
+
+void writeAppVar(void) {
+    int stuff;
+    ti_CloseAll();
+    file = ti_Open("Taxi", "w");
+    stuff = ti_Write(&appVar, sizeof(appVar), 1, file);
+    ti_SetArchiveStatus(true, file);
+    ti_CloseAll();
 }
 
 /* Put other functions here */
@@ -148,6 +182,10 @@ void infobar() {
         gfx_PrintString(" Tip: ");
         gfx_PrintUInt(game.tip / 10, 2);
     }
+    gfx_SetTextXY(252,4);
+    gfx_PrintString("High: ");
+    gfx_PrintUInt(appVar.highscore, 3);
+    
 }
 void update() {
     kb_key_t arrows;
