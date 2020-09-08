@@ -1,3 +1,5 @@
+[note: this was my entry for CC20 back in June 2017. I've just now uploaded it to GitHub.]
+
 Taxi Simulator
 by commandblockguy
 
